@@ -22,10 +22,16 @@ class QuizView extends Component {
 
   componentDidMount(){
     $.ajax({
-      url: `/categories`, //TODO: update request URL
+      url: `http://127.0.0.1:5000/categories`, //TODO: update request URL
       type: "GET",
       success: (result) => {
-        this.setState({ categories: result.categories })
+        let categories={}
+        for(let i=0;i<result.categories.length;i++){
+          categories[result.categories[i].id] = result.categories[i].type
+        }
+        this.setState({
+           categories: categories 
+        })
         return;
       },
       error: (error) => {
@@ -48,7 +54,7 @@ class QuizView extends Component {
     if(this.state.currentQuestion.id) { previousQuestions.push(this.state.currentQuestion.id) }
 
     $.ajax({
-      url: '/quizzes', //TODO: update request URL
+      url: 'http://127.0.0.1:5000/quizzes', //TODO: update request URL
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',
@@ -56,10 +62,10 @@ class QuizView extends Component {
         previous_questions: previousQuestions,
         quiz_category: this.state.quizCategory
       }),
-      xhrFields: {
-        withCredentials: true
-      },
-      crossDomain: true,
+      // xhrFields: {
+      //   withCredentials: true
+      // },
+      // crossDomain: true,
       success: (result) => {
         this.setState({
           showAnswer: false,
