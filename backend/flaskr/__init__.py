@@ -47,12 +47,11 @@ def create_app(test_config=None):
   # ---------------------------------------
 
   @app.route('/categories',methods=['GET'])
-  def get_category():
+  def get_categories():
     all_categories = [category.format() for category in Category.query.all()]
 
     return jsonify({
           'success': True,
-          'status_code': 200,
           'categories': all_categories,
         })
 
@@ -74,7 +73,7 @@ def create_app(test_config=None):
 
     return jsonify(
 
-    { "status_code":200,
+    { 
       "success":True,
       "total_questions":len(all_questions),
       "categories":all_categories ,
@@ -90,19 +89,14 @@ def create_app(test_config=None):
 
   @app.route('/questions/<int:id>',methods=['DELETE'])
   def delete_question(id):
-    try:
-      question = Question.query.get_or_404(id).delete()
-      return jsonify({
-        "success":True,
-        'status_code':200,
-        'message':"deleted successfully"
-      })
-    except :
-      return jsonify({
-        "success":False,
-        "status_code":500
-      })
-
+    
+    # raise 404 error if question not found
+    question = Question.query.get_or_404(id).delete()
+    return jsonify({
+      "success":True,
+      'message':"deleted successfully"
+    }),200
+  
 
   # create new Question
   # -------------------------------
@@ -115,10 +109,13 @@ def create_app(test_config=None):
     json_data = request.get_json()
 
 
-    question = json_data.get("question")
-    answer = json_data.get("answer")
-    difficulty = json_data.get("difficulty")
-    category = json_data.get("category")
+    question = json_data.get("question","")
+    answer = json_data.get("answer","")
+    difficulty = json_data.get("difficulty","")
+    category = json_data.get("category","")
+
+    if(not(category and answer and difficulty and question)):
+      abort(422,"can't process the request")
     
 
     # next line only used to raise 404 if category not exists 
@@ -132,7 +129,6 @@ def create_app(test_config=None):
 
     return jsonify({
       "success":True,
-      "status_code":201,
       "message":"question created successfully"
     }),201
 
@@ -144,8 +140,9 @@ def create_app(test_config=None):
   @app.route('/questions/search',methods=['POST'])
   def search_question():
 
-    search_term = request.get_json().get('searchTerm', "None")
-    print("",search_term,"",sep="\n\\n\n\n")
+    search_term = request.get_json().get('searchTerm', "")
+    if(not search_term):
+      abort(422,"can't process the request")
     questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
     
     # current_page = int( request.args.get('page',1))
@@ -156,6 +153,7 @@ def create_app(test_config=None):
       "questions":[question.format() for question in questions ],
       "totalQuestions":len(questions),
       "currentCategory":"",
+      'success':True
     })
 
   
@@ -175,6 +173,7 @@ def create_app(test_config=None):
       "questions":questions,
       "totalQuestions":len(questions),
       "current_category":category.type,
+      'success':True,
     })
 
 
@@ -184,30 +183,29 @@ def create_app(test_config=None):
 
   @app.route('/quizzes',methods=['POST'])
   def get_quizzes():
-    
     json_data = request.get_json()
-    previous_questions = json_data.get('previous_questions')
-    quiz_category = json_data.get('quiz_category')['id']
+    previous_questions = json_data.get('previous_questions',"")
+    quiz_category = json_data.get('quiz_category').get("id","")
+
+
+    if(type(previous_questions)!=list or quiz_category==""):
+      abort(422,"can't process the request")
     
     question = Question.query.filter(Question.id.notin_(previous_questions))
 
-    print("-----------------------------\n\n\n\n")
-    print(quiz_category)
-
+    
     if(quiz_category!=0):
-      print(quiz_category)
       question = question.filter(Question.category==quiz_category)
     
     question = question.order_by(func.random()).first()
       
-    print("\n\n\n\n-----------------------------")
+    
     
     quiz_category
     return jsonify({
       "success":True,
-      "status_code":200,
       "question":question.format() if question else None
-    })
+    }),200
 
 
 
@@ -218,7 +216,6 @@ def create_app(test_config=None):
   def not_found(error):
     return jsonify({
       "success":False,
-      "status_code":404,
       "message": error.description if error.description else "Not Found"
     }),404
 
