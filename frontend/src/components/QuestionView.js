@@ -12,7 +12,7 @@ class QuestionView extends Component {
       questions: [],
       page: 1,
       totalQuestions: 0,
-      categories: [],
+      categories: {},
       currentCategory: null,
     }
   }
@@ -27,10 +27,14 @@ class QuestionView extends Component {
       type: "GET",
       success: (result) => {
         console.log("success")
+        let categories={}
+        for(let i=0;i<result.categories.length;i++){
+          categories[result.categories[i].id] = result.categories[i].type
+        }
         this.setState({
           questions: result.questions,
           totalQuestions: result.total_questions,
-          categories: result.categories,
+          categories: categories,
           currentCategory: result.current_category })
         console.log(this.state.categories)
         return;
@@ -106,13 +110,13 @@ class QuestionView extends Component {
   }
 
 
-  get_cat(id){
-    for(let i=0;i<this.state.categories.length;i++){
-      if(this.state.categories[i].id == id){
-        return this.state.categories[i];
-      }
-    }
-  }
+  // get_cat(id){
+  //   for(let i=0;i<this.state.categories.length;i++){
+  //     if(this.state.categories[i].id == id){
+  //       return this.state.categories[i];
+  //     }
+  //   }
+  // }
 
   questionAction = (id) => (action) => {
     if(action === 'DELETE') {
@@ -140,10 +144,10 @@ class QuestionView extends Component {
           <ul>
             {/* replacing object.keys because i want to display the category */}
             {/*  */}
-            {this.state.categories.map((category,ind) => (
-              <li key={category.id} onClick={() => {this.getByCategory(category.id)}}>
-                {category.type}
-                <img className="category" src={`${category.type.toLowerCase()}.svg`}/>
+            {Object.keys(this.state.categories).map((id) => (
+              <li key={id} onClick={() => {this.getByCategory(id)}}>
+                {this.state.categories[id]}
+                <img className="category" src={`${this.state.categories[id].toLowerCase()}.svg`}/>
               </li>
             ))}
           </ul>
@@ -156,7 +160,7 @@ class QuestionView extends Component {
               key={q.id}
               question={q.question}
               answer={q.answer}
-              category={this.get_cat(q.category)} 
+              category={this.state.categories[q.category]} 
               difficulty={q.difficulty}
               questionAction={this.questionAction(q.id)}
             />

@@ -11,7 +11,7 @@ class FormView extends Component {
       answer: "",
       difficulty: 1,
       category: 1,
-      categories: []
+      categories: {}
     }
   }
 
@@ -20,7 +20,11 @@ class FormView extends Component {
       url: `http://127.0.0.1:5000/categories`, //TODO: update request URL
       type: "GET",
       success: (result) => {
-        this.setState({ categories: result.categories })
+        let categories={}
+        for(let i=0;i<result.categories.length;i++){
+          categories[result.categories[i].id] = result.categories[i].type
+        }
+        this.setState({ categories: categories })
         return;
       },
       error: (error) => {
@@ -91,9 +95,9 @@ class FormView extends Component {
           <label>
             Category
             <select name="category" onChange={this.handleChange}>
-              {this.state.categories.map(category => {
+              {Object.keys(this.state.categories).map(id => {
                   return (
-                    <option key={category.id} value={category.id}>{category.type}</option>
+                    <option key={id} value={id}>{this.state.categories[id]}</option>
                   )
                 })}
             </select>
