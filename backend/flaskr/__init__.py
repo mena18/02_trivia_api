@@ -90,8 +90,13 @@ def create_app(test_config=None):
   @app.route('/questions/<int:id>',methods=['DELETE'])
   def delete_question(id):
     
-    # raise 404 error if question not found
-    question = Question.query.get_or_404(id).delete()
+    
+    question = Question.query.get(id)
+    if(question):
+      question.delete()
+    else:
+      abort(404,"Question not found")
+    
     return jsonify({
       "success":True,
       'message':"deleted successfully"
@@ -161,7 +166,7 @@ def create_app(test_config=None):
   # get question by category
   # -------------------------------
 
-  @app.route('/categories/<int:id>/questions')
+  @app.route('/categories/<int:id>/questions',methods=['GET'])
   def get_category_questions(id):
     
     category = Category.query.get_or_404(id)

@@ -40,7 +40,7 @@ class QuestionView extends Component {
         return;
       },
       error: (error) => {
-        alert('Unable to load questions 1. Please try your request again')
+        alert('Unable to load questions . Please try your request again')
         return;
       }
     })
@@ -76,7 +76,7 @@ class QuestionView extends Component {
         return;
       },
       error: (error) => {
-        alert('Unable to load questions 2. Please try your request again')
+        alert('Unable to load questions . Please try your request again')
         return;
       }
     })
@@ -103,7 +103,7 @@ class QuestionView extends Component {
         return;
       },
       error: (error) => {
-        alert('Unable to load questions 3. Please try your request again')
+        alert('Unable to load questions . Please try your request again')
         return;
       }
     })
@@ -128,7 +128,7 @@ class QuestionView extends Component {
             this.getQuestions();
           },
           error: (error) => {
-            alert('Unable to load questions 4. Please try your request again')
+            alert('Unable to load questions . Please try your request again')
             return;
           }
         })
