@@ -20,12 +20,6 @@ def create_app(test_config=None):
   CORS(app)
 
 
-  @app.route('/')
-  def test():
-    new_questions = [category.format() for category in Category.query.all()]
-    return jsonify(new_questions)
-
-
 
 
 
@@ -119,11 +113,13 @@ def create_app(test_config=None):
     difficulty = json_data.get("difficulty","")
     category = json_data.get("category","")
 
+
+    # raise 404 if any field  was empty  because we can't process the requests 
     if(not(category and answer and difficulty and question)):
       abort(422,"can't process the request")
     
 
-    # next line only used to raise 404 if category not exists 
+    # raise 404 if category dosen't exists 
     cat = Category.query.get(category)
     if(not cat):
       abort(404,"category not found")
@@ -148,11 +144,10 @@ def create_app(test_config=None):
     search_term = request.get_json().get('searchTerm', "")
     if(not search_term):
       abort(422,"can't process the request")
+
+    # case sensitive search for  questions 
     questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
     
-    # current_page = int( request.args.get('page',1))
-    # start = (current_page-1) * QUESTIONS_PER_PAGE 
-    # end   = start + QUESTIONS_PER_PAGE
 
     return jsonify({
       "questions":[question.format() for question in questions ],
@@ -168,7 +163,8 @@ def create_app(test_config=None):
 
   @app.route('/categories/<int:id>/questions',methods=['GET'])
   def get_category_questions(id):
-    
+
+    # get the category or raise 404 error if the category not found
     category = Category.query.get_or_404(id)
 
     questions = Question.query.filter(Question.category==id).all()
@@ -192,16 +188,21 @@ def create_app(test_config=None):
     previous_questions = json_data.get('previous_questions',"")
     quiz_category = json_data.get('quiz_category').get("id","")
 
-
+    
+    # if can't process the request raise 422 error 
     if(type(previous_questions)!=list or quiz_category==""):
       abort(422,"can't process the request")
     
+
+    # getting all questinos excluding the questions already exists in  previous_questions
     question = Question.query.filter(Question.id.notin_(previous_questions))
 
-    
+    # if category !=0 then request choose one category so we get the question from that category 
     if(quiz_category!=0):
       question = question.filter(Question.category==quiz_category)
     
+
+    # ordering the question randomly to get new question each time and get only the first one
     question = question.order_by(func.random()).first()
       
     
